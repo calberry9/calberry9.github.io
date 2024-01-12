@@ -70,5 +70,11 @@ p.right-align {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
+    width: 40%;
   }
+
+  .menu-item {
+    color: #3498db; /* Change this color to your preferred color code */
+    text-decoration: none; /* Remove underlines from the links */
+    margin: 0 15px; /* Optional: Add spacing between menu items */
+}

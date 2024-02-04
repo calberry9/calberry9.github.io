@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Project 1</title>
+    <title>Where is the Sound?</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <header>
         <nav>
             <div class="container">
-                <h1>Project 1</h1>
+                <h1>Where is the Sound?</h1>
                 <ul>
                     <li><a href="index.html" class="menu-item">Home</a></li>
                 </ul>
@@ -16,20 +18,156 @@
         </nav>
     </header>
 
-    <section id="about" class="section">
+    <section id="Team Overview" class="section">
         <div class="container">
-            <h2>Welcome!</h2>
+            <h2>Team Overview</h2>
+            <p>Team Members</p>
+            <ul>
+                <li>Callaghan Berry (myself); Role: Hardware Selection and Algorithm Implementation</li>
+                <li>Christina Liu; Role: Hardware Selection and Algorithm Implementation</li>
+                <li>Thalia Lightstone; Role: Software, Documentation, and Multimedia</li>
+                <li>Micheal Turner; Role: Software and Firmware</li>
+                <li>Caitlin Goldberg; Role: Project Manager</li>
+            </ul>
+        </div>
+    </section>
 
-            <img src="DSC_0040.JPG" alt="Me" class="center">
+    <section id="Introduction" class="section">
+        <div class="container">
+            <h2>Introduction</h2>
 
-            <p>Hello! My name is Callaghan Berry and this is my Personal Project Portfolio, (a project in and of itself). I created this website as a place to showcase some of my projects and serve as a digital resume, as well as learn some basic HTML and CSS. This website is a work in progress, so it may look a little rough around the edges, but if your seeing this, it works!</p>
-            <p>A bit about me, I graduated from Tufts University with my degreee in Electrical Engineering in May of 2023. Since then, I have been working at MIT's Lincoln Laboratory as an Assistant Staff - HF Radar Engineer. I am still in the process of discovering what I want to specialize in, but my current interests lie in the areas of Signal Processing, Communications, and RF Hardware Design.</p>
+            <figure>
+                <img src="Images/respeaker.jpg" alt="Device" class="center">
+                <figcaption class="center">Figure 1: Microphone Array</figcaption>
+            </figure>
+
+            <p>Hearing is one of the five senses in which humans use to interact with the world around us. We use it in conversation, in music and art, as well as a way to understand our spatial surroundings. Having two ears gives us the ability to perceive differences in sounds between ears, a concept called binaural hearing. Having two ears, or sensors as we will explore later, allows our brain to perceive volume and/or time of arrival differences in audio stimuli, and combine that information to determine audio directionality. This is an overlooked yet necessary key to many aspects of life. Imagine the danger of crossing a busy intersection without being able to hear an oncoming car? Even a more casual scenario such as a conversation in a restaurant can be cumbersome without spatial orientation. Those who suffer from hearing loss or impairment can struggle locating the sources of sounds, leaving them at a severe disadvantage. The use of hearing aids or cochlear implants provides some rectification for people who struggle with hearing loss, however these devices are not perfect. The costs and invasive surgeries often associated with these devices can limit users to one device, restricting the brains ability to discern direction. Even those who have access to two hearing aids or cochlear implants can have issues if the devices are not tuned properly.</p>
+
+            <p>Each year, students in Tufts University's Electrical and Computer Engineering Department form thesis teams to tackle problems and create prototypes. Our team, Team Periwinkle, set out to solve this audio directionality problem plaguing many hearing impaired communities. We first started by consulting members of hard of hearing communities to understand their experiences with audio directionality and get their feedback on potential solutions. The prevailing idea was to separate the task of audio direction tracking from the human brain by creating am electronic device that could present direction estimates to the user in real time. Direction can be defined in many ways, but for this project, we focused on the azimuthal angle of arrival. This angle lives on flat ground and is defined over 360 degrees relative to a person, with 0 degrees being directly in front. The realization of this solution takes advantage of an array of microphones. Similar to human hearing, a microphone array, or grouping of multiple microphones separated in space, allows us to record sounds at different points in space and use this information to estimate an angle of arrival. The microphone array and direction finding algorithms will be covered in the next few sections. </p>
+        </div>
+    </section>
+
+    <section id="Array Setup" class="section">
+        <div class="container">
+            <h2>Microphone Array Setup</h2>
+
+            <p>The angle estimate for angle of arrival (AoA) of an audio signal can be measured from a simple time delay. To explain this, we will use a simplified two microphone Uniform Linear Array (ULA), shown in the image below. Utilizing two microphones separated in space gives us the ability to measure the time delay of arrival between microphones, or TDoA.</p>
+
+            <figure>
+                <img src="Images/mic setup.png" alt="Array Setup" class="center">
+                <figcaption class="center">Figure 2: Microphone Array Setup</figcaption>
+            </figure>
+            
+            <p>The two microphone array as shown above consists of two sensors, <strong>Mic 1</strong> and <strong>Mic 2</strong>, separated by a distance <strong>d</strong>. Sound waves travel at a constant speed of 343m/s in dry air, assuming no dispersion. If we imagine a sound wave emitted from some source impinging on our microphone array from the left, as shown, then that wave will first be recorded by <strong>Mic 1</strong> and then by <strong>Mic 2</strong> some time later. The time it takes for the sound to travel between <strong>Mic 1</strong> and <strong>Mic 2</strong> can be related by the separation distance <strong>d</strong>, speed of sound <strong>v</strong>, and angle of arrival relative to broadside <strong>&beta;</strong> by the equation:</p>
+
+            \[ \tau = \frac{d \sin(\beta)}{d} \]
+
+            <p>where \(\tau\) is the time delay or lag between microphones. From this we can see that if one were to know the time lag between microphone sources recording the audio source, they could calculate the angle of arrival using this array.<p>
+
+            </p>One limitation of this method that the angle estimate from this array is slightly ambiguous. Imagine a signal arriving from 0 degrees off broadside. Then imagine a signal arriving from behind the array at 180 degrees off broadside. The time delay between these two angles of arrival is the same. Similarly, a signal arriving from 45 degrees off broadside and another from 135 degrees will also appear the same, since the signal will travel the same distance between microphones 1 and 2.</p>
+
+            <figure>
+                <img src="Images/polar_plot.jpg" alt="Azimuth Angles" class="center">
+                <figcaption class="center">Figure 3: Polar Plot of Angle of Arrival.</figcaption>
+            </figure>
+
+            <p>This phenomena is a limitation of any linear array. A simple way to rectify this is to use 2 dimensional arrays of sensors which can give a more unambiguous estimate of the azimuthal angle of arrival, as well as provide information about elevation if desired. The microphone array employed in this project that we will explore in the next section is a 2 dimensional circular array, which allows us to estimate a single angle rather than an ambiguous cone. The angle estimate is sometimes referred to as the "cone angle" rather than angle of arrival, as the grouping of ambiguous signals for one angle estimate form a triangle in 2D space, like in blue above, or a cone if concerned with 3D space.</p>
+        </div>
+    </section>
+
+    <section id="Hardware" class="section">
+        <div class="container">
+            <h2>Hardware</h2>
+
+            <p>Tufts Senior Capstone Projects are constrained to 2 semesters, with the first largely taken up by forming teams, finding problems, and making proposals. This left really only 1 semester to work on implementations of solutions. Due to this time constraint, our team elected to use off the shelf hardware rather than design our own microphone array from scratch. There are many off the shelf microphone arrays available from a variety of companies that interface with a variety of hardware, but we landed on a product from Seeed Technology; the ReSpeaker 6 Mic Circular Array. <a href="https://www.seeedstudio.com/ReSpeaker-6-Mic-Circular-Array-Kit-for-Raspberry-Pi.html?queryID=ff3c56f154ca538f605870f8ed555af7&objectID=131&indexName=bazaar_retailer_products">Link to product page.</a></p>
+
+            <figure>
+                <img src="Images/respeaker hardware.png" alt="ReSpeaker" class="center">
+                <figcaption class="center">Figure 4: ReSpeaker Array</figcaption>
+            </figure>
+
+            <p>The ReSpeaker is a 6 Microphone circular array, as seen above. Here are the hardware specifications taken directly from the datasheet:</p>
+
+            <ul>
+                <li>2 x X-Power AC108 ADC</li>
+                <li>6 x high performance microphones</li>
+                <li>1 x X-Power AC101 DAC</li>
+                <li>Voice output: 3.5mm headset audio jack, speaker jack</li>
+                <li>Compatible with Raspberry Pi 40-pin headers</li>
+                <li>Microphones: MSM321A3729H9CP</li>
+                <li>Sensitivity: -22 dBFS (Omnidirectional)</li>
+                <li>SNR: 59 dB</li>
+                <li>Max Sample Rate: 48kHz</li>
+            </ul>
+
+            <p>We chose this design from Seeed for a variety of reasons. First, it had the ability to integrate with a raspberry pi microprocessor. The ReSpeaker is a breakout board that communicates with the pi through the pi's onboard GPIO pins. All of the audio capture is handled by the dedicated audio breakout board and the data is then passed to the pi for processing. This device also had an array of LEDs that could be associated with each microphone, serving as a visual indicator for direction of arrival. Though a dedicated audio processor would have been better for this application, the raspberry pi was more than capable for our application, and allowed us to better hit our timeline through relatively low learning curve. The raspberry pi is also rather easy to code on with a built in linux operating system. For coding the device, any firmware or drivers were written in C, with the signal processing code being written in Python.</p>
+
+            <figure>
+                <img src="Images/hw block diagram.png" alt="Hardware" class="center">
+                <figcaption class="center">Figure 5: ReSpeaker Hardware Block Diagram</figcaption>
+            </figure>
+
+            <p>Another important area is the analog front end and Analog to Digital conversion section. The range of audio frequencies that humans can hear is about 20Hz to 20kHz. This frequency range drives the required sampling rate of our device. Audio exists as an analog signal in the air. In order to be processed by a computer using Digital Signal Processing, DSP, it must first be digitized. The process of converting an analog signal to a digital signal involves sampling the analog signal at discrete intervals, known as the sampling period. The sampling rate is how many samples are taken each second. According to Nyquist's Sampling Theorem, any periodic signal must be sampled at greater than or equal to twice the maximum frequency component of that signal. This is to prevent frequency aliasing or overlap, which can distort our now digital signal. The Nyquist sampling rate for an audio signal is roughly 40kHz. Our hardware supports up to a 48kHz sampling rate, making it a good choice for audio applications, at least in a sampling sense. Unfortunately, we ran into a firmware problem getting the board to sample at 48kHz and ended up using a 16kHz sampling rate instead. The AC108 ADCs support a variety of sampling frequencies and have included anti-aliasing filters built into the front end that prevent aliasing of frequencies higher than Nyquist, so this ended up not being much of a problem. Additionally, speech and music signals end up being below 1kHz anyway, so audio quality is sufficiently preserved.</p>
+
+        </div>
+    </section>
+
+    <section id="Hardware" class="section">
+        <div class="container">
+            <h2>Time Delay Estimation: GCC-PHAT</h2>
+
+            <p>For this project, our team elected to use a Time Delay Estimation method to compute the angle of arrival. The angle of arrival is directly proportional to the time delay measured between microphones as shown above, so this method can provide an accurate way to compute angle of arrival. There are many ways to calculate time delay between two microphone inputs, but in this project we will explore a method called cross-correlation, specifically the Generalized Cross-Correlation Phase Transform (GCC-PHAT).</p>
+
+            <p>Cross-correlation is a measure of similarity between two datasets as a function of time shifts. Basically, we take two datasets and see how much similar they are, and then shift one of the datasets in time and look at the similarity again, doing this for until the signals no longer overlap. Mathematically, this is equivalent to multiplying two signals together, and then taking the expectation, for every possible shift amount. This can be useful for determining the lag between signals received by two different sensors. We can model a single audio source captured by two microphones with two equations:</p>
+
+            \[x_1(t)=s(t)+n_1(t)\]
+            \[x_2(t)=\alpha s(t-\tau_0)+n_2(t)\]
+
+            <p>where s(t) is the signal emitted from the audio source, \(\alpha\) is a scaling or attenuation factor, and n<sub>1</sub>(t) and n<sub>2</sub>(t) are assumed to be uncorrelated noise vectors. The signal in x<sub>2</sub> has a time delay \(\tau_0\) applied to it due to the delay introduced over the propagation path. An important assumption made here, and a limitation in operation, is that the cross-correlation algorithms assume a single source. Their behavior with multiple sources is undefined and any angle estimates in the presence of multiple sources could be incorrect. We see that each sensor signal is really just a time shifted version of the other plus noise. If we were to correlate these two signals, we would find that if the x<sub>2</sub> were shifted forward in time by \(\tau_0\), the signals would end up being highly correlated, assuming the Signal to Noise Ratio, SNR, is high enough, meaning the signal s(t) is much stronger than the noise. Here is the math:</p>
+
+            \[R_{x_1,x_2}(\tau) = \mathbb{E}[x_1(t)x_2(t-\tau)]\]
+            \[\hat{\tau_0} = arg max(R_{x_1,x_2}(\tau))\]
+
+            <p>In the above equations, \(R_{x_1,x_2}(\tau)\) is the cross-correlation as a function of an applied time shift \(\tau\), \(\mathbb{E}\) is the mathematical expectation operator, and \(\hat{\tau_0}\) is the estimate of the time delay \(\tau_0\). The estimate \(\tau_0\) is the time delay that maximizies our cross-correlation function.</p>
+
+            <p>What we have talked about so far is "regular" cross-correlation. The "generalized" approach uses weighting functions to sharpen the peak of our cross-correlation function in order to get a better, more accurate time delay estimate. The Phase Transform (PHAT) is one of those weighting methods. The PHAT transform involves weighting the cross power spectrum, or the frequency domain realization of the cross-correlation, by the magnitude of the spectrum. The phase transform is applied in the frequency domain.</p>
+
+            \[R_{x_1,x_2}(\omega) = \int_{-\infty}^{\infty}R_{x_1,x_2}(\tau)e^{-j\omega\tau}d\tau\]
+
+            <p>We can then transform back into the time domain using the Inverse Fourier Transform while scaling by our PHAT weighting function.</p>
+
+            \[R_{x_1,x_2}(\tau) = \frac{1}{2\pi}\int_{-\infty}^{\infty}\frac{R_{x_1,x_2}(\omega)}{|R_{x_1,x_2}(\omega)|}e^{j\omega\tau}d\omega\]
+
+            <p>Since we have assumed our noise vectors \(n_1\) and \(n_2\) are uncorrelated, \(R_{n_1,n_2}(\omega)=0\), the cross power spectrum becomes</p>
+
+            \[|R_{x_1,x_2}(\omega)| = R_{s_1,s_2}(\omega)\]
+
+            <p>and our cross-correlation works out to be</p>
+
+            \[R_{x_1,x_2}(\tau) = \frac{1}{2\pi}\int_{-\infty}^{\infty}\frac{R_{x_1,x_2}(\omega)}{R_{s_1,s_2}(\omega)}e^{j\omega\tau}d\omega\]
+            \[R_{x_1,x_2}(\tau) = \frac{1}{2\pi}\int_{-\infty}^{\infty}\frac{1}{e^{-j\omega\tau_0}}e^{j\omega\tau}d\omega\]
+            \[R_{x_1,x_2}(\tau) = \delta(\tau-\tau_0)\]
+
+            <p>we then take the maximum of our cross correlation function, which after the PHAT weighting is a simple dirac delta function.</p>
+
+            \[\hat{\tau_0} = arg max(\delta(\tau-\tau_0)) = \tau_0\]
+
+
+
+            <figure>
+                <img src="Images/delayed audio.png" alt="Hardware" class="center">
+                <figcaption class="center">Figure 6: Recorded and Delayed Audio</figcaption>
+            </figure>
+
+
+
+
         </div>
     </section>
 
     <footer>
         <div class="container">
-            <p>&copy; 2023 Callaghan Berry. Copyright/All Rights Reserved, or whatever legal stuff may or may not apply to this website.</p>
+            <p>&copy; 2024 Callaghan Berry. Copyright/All Rights Reserved, or whatever legal stuff may or may not apply to this website.</p>
         </div>
     </footer>
 </body>

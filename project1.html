@@ -58,9 +58,9 @@
                 <figcaption class="center">Figure 2: Microphone Array Setup</figcaption>
             </figure>
             
-            <p>The two microphone array as shown above consists of two sensors, <strong>Mic 1</strong> and <strong>Mic 2</strong>, separated by a distance <strong>d</strong>. Sound waves travel at a constant speed of 343m/s in dry air, assuming no dispersion. If we imagine a sound wave emitted from some source impinging on our microphone array from the left, as shown, then that wave will first be recorded by <strong>Mic 1</strong> and then by <strong>Mic 2</strong> some time later. The time it takes for the sound to travel between <strong>Mic 1</strong> and <strong>Mic 2</strong> can be related by the separation distance <strong>d</strong>, speed of sound <strong>v</strong>, and angle of arrival relative to broadside <strong>&beta;</strong> by the equation:</p>
+            <p>The two microphone array as shown above consists of two sensors, \(\tau\) and <strong>Mic 2</strong>, separated by a distance \(d\). Sound waves travel at a constant speed of 343m/s in dry air, assuming no dispersion. If we imagine a sound wave emitted from some source impinging on our microphone array from the left, as shown, then that wave will first be recorded by <strong>Mic 1</strong> and then by <strong>Mic 2</strong> some time later. The time it takes for the sound to travel between <strong>Mic 1</strong> and <strong>Mic 2</strong> can be related by the separation distance \(d\), speed of sound \(v\), and angle of arrival relative to broadside \(\beta\) by the equation:</p>
 
-            \[ \tau = \frac{d \sin(\beta)}{d} \]
+            \[ \tau = \frac{d \sin(\beta)}{v} \]
 
             <p>where \(\tau\) is the time delay or lag between microphones. From this we can see that if one were to know the time lag between microphone sources recording the audio source, they could calculate the angle of arrival using this array.<p>
 
@@ -100,14 +100,19 @@
                 <li>Max Sample Rate: 48kHz</li>
             </ul>
 
-            <p>We chose this design from Seeed for a variety of reasons. First, it had the ability to integrate with a raspberry pi microprocessor. The ReSpeaker is a breakout board that communicates with the pi through the pi's onboard GPIO pins. All of the audio capture is handled by the dedicated audio breakout board and the data is then passed to the pi for processing. This device also had an array of LEDs that could be associated with each microphone, serving as a visual indicator for direction of arrival. Though a dedicated audio processor would have been better for this application, the raspberry pi was more than capable for our application, and allowed us to better hit our timeline through relatively low learning curve. The raspberry pi is also rather easy to code on with a built in linux operating system. For coding the device, any firmware or drivers were written in C, with the signal processing code being written in Python.</p>
+            <p>We chose this design from Seeed for a variety of reasons. First, it had the ability to integrate with a raspberry pi microprocessor. The ReSpeaker is a breakout board that communicates with the pi through the pi's onboard GPIO pins. All of the audio capture is handled by the dedicated audio breakout board and the data is then passed to the pi for processing. This device also had an array of 12 LEDs that could be lit to indicate estimated direction of arrival. Though a dedicated audio processor would have been better for this application, the raspberry pi was more than capable for our needs, and allowed us to better hit our timeline through relatively low learning curve. Raspberry pi's can run versions of Linux, so programming and package installations is fairly easy, and there is a lot of documentation to work off of. For coding the device, any firmware or drivers were written in C, with the signal processing code being written in Python.</p>
 
             <figure>
                 <img src="Images/hw block diagram.png" alt="Hardware" class="center">
                 <figcaption class="center">Figure 5: ReSpeaker Hardware Block Diagram</figcaption>
             </figure>
 
-            <p>Another important area is the analog front end and Analog to Digital conversion section. The range of audio frequencies that humans can hear is about 20Hz to 20kHz. This frequency range drives the required sampling rate of our device. Audio exists as an analog signal in the air. In order to be processed by a computer using Digital Signal Processing, DSP, it must first be digitized. The process of converting an analog signal to a digital signal involves sampling the analog signal at discrete intervals, known as the sampling period. The sampling rate is how many samples are taken each second. According to Nyquist's Sampling Theorem, any periodic signal must be sampled at greater than or equal to twice the maximum frequency component of that signal. This is to prevent frequency aliasing or overlap, which can distort our now digital signal. The Nyquist sampling rate for an audio signal is roughly 40kHz. Our hardware supports up to a 48kHz sampling rate, making it a good choice for audio applications, at least in a sampling sense. Unfortunately, we ran into a firmware problem getting the board to sample at 48kHz and ended up using a 16kHz sampling rate instead. The AC108 ADCs support a variety of sampling frequencies and have included anti-aliasing filters built into the front end that prevent aliasing of frequencies higher than Nyquist, so this ended up not being much of a problem. Additionally, speech and music signals end up being below 1kHz anyway, so audio quality is sufficiently preserved.</p>
+            <p>Another important area is the analog front end and analog to digital conversion section. The range of audio frequencies that humans can hear is about 20Hz to 20kHz. This frequency range drives the required sampling rate of our device. Audio exists as an analog signal in the air. In order to be processed by a computer using Digital Signal Processing, DSP, it must first be digitized. The process of converting an analog signal to a digital signal involves sampling the analog signal at discrete intervals, known as the sampling period. The sampling rate is how many samples are taken each second. According to Nyquist's Sampling Theorem, any periodic signal must be sampled at greater than or equal to twice the maximum frequency component of that signal. This is to prevent aliasing, in which frequencies higher than half the sampling rate will wrap around onto lower frequencies causing distortion. The Nyquist sampling rate for an audio signal is roughly 40kHz. Our hardware supports up to a 48kHz sampling rate, making it a good choice for audio applications, at least in a sampling sense. Unfortunately, we ran into a firmware problems getting the board to sample at 48kHz and ended up using a 16kHz sampling rate instead. The AC108 ADCs support a variety of sampling frequencies and have included anti-aliasing filters built into the front end that prevent aliasing of frequencies higher than Nyquist, so this ended up not being much of a problem. Additionally, speech and music signals end up being below 1kHz anyway, so audio quality is sufficiently preserved.</p>
+
+            <figure>
+                <img src="Images/ac108.png" alt="AC108" class="center">
+                <figcaption class="center">Figure 6: AC108 Block Diagram</figcaption>
+            </figure>
 
         </div>
     </section>
@@ -123,12 +128,12 @@
             \[x_1(t)=s(t)+n_1(t)\]
             \[x_2(t)=\alpha s(t-\tau_0)+n_2(t)\]
 
-            <p>where s(t) is the signal emitted from the audio source, \(\alpha\) is a scaling or attenuation factor, and n<sub>1</sub>(t) and n<sub>2</sub>(t) are assumed to be uncorrelated noise vectors. The signal in x<sub>2</sub> has a time delay \(\tau_0\) applied to it due to the delay introduced over the propagation path. An important assumption made here, and a limitation in operation, is that the cross-correlation algorithms assume a single source. Their behavior with multiple sources is undefined and any angle estimates in the presence of multiple sources could be incorrect. We see that each sensor signal is really just a time shifted version of the other plus noise. If we were to correlate these two signals, we would find that if the x<sub>2</sub> were shifted forward in time by \(\tau_0\), the signals would end up being highly correlated, assuming the Signal to Noise Ratio, SNR, is high enough, meaning the signal s(t) is much stronger than the noise. Here is the math:</p>
+            <p>where \(s(t)\) is the signal emitted from the audio source, \(\alpha\) is a scaling or attenuation factor, and \(n_1(t)\) and \(n_2(t)\) are assumed to be uncorrelated noise vectors. The signal in \(x_2(t)\) has a time delay \(\tau_0\) applied to it due to the delay introduced over the propagation path. An important assumption made here, and a limitation in operation, is that the cross-correlation algorithms assume a single source. Their behavior with multiple sources is undefined and any angle estimates in the presence of multiple sources could be incorrect. We see that each sensor signal is really just a time shifted version of the other plus noise. If we were to correlate these two signals, we would find that if the \(x_2(t)\) were shifted forward in time by \(\tau_0\), the signals would end up being highly correlated, assuming the Signal to Noise Ratio, SNR, is high enough, meaning the signal s(t) is much stronger than the noise. Here is the math:</p>
 
             \[R_{x_1,x_2}(\tau) = \mathbb{E}[x_1(t)x_2(t-\tau)]\]
             \[\hat{\tau_0} = arg max(R_{x_1,x_2}(\tau))\]
 
-            <p>In the above equations, \(R_{x_1,x_2}(\tau)\) is the cross-correlation as a function of an applied time shift \(\tau\), \(\mathbb{E}\) is the mathematical expectation operator, and \(\hat{\tau_0}\) is the estimate of the time delay \(\tau_0\). The estimate \(\tau_0\) is the time delay that maximizies our cross-correlation function.</p>
+            <p>In the above equations, \(R_{x_1,x_2}(\tau)\) is the cross-correlation as a function of an applied time shift \(\tau\), \(\mathbb{E}\) is the mathematical expectation operator, and \(\hat{\tau_0}\) is the estimate of the time delay \(\tau_0\). The estimate \(\hat{\tau_0}\) is the time delay that maximizies our cross-correlation function.</p>
 
             <p>What we have talked about so far is "regular" cross-correlation. The "generalized" approach uses weighting functions to sharpen the peak of our cross-correlation function in order to get a better, more accurate time delay estimate. The Phase Transform (PHAT) is one of those weighting methods. The PHAT transform involves weighting the cross power spectrum, or the frequency domain realization of the cross-correlation, by the magnitude of the spectrum. The phase transform is applied in the frequency domain.</p>
 
@@ -152,11 +157,9 @@
 
             \[\hat{\tau_0} = arg max(\delta(\tau-\tau_0)) = \tau_0\]
 
-
-
             <figure>
                 <img src="Images/delayed audio.png" alt="Hardware" class="center">
-                <figcaption class="center">Figure 6: Recorded and Delayed Audio</figcaption>
+                <figcaption class="center">Figure 7: Recorded and Delayed Audio</figcaption>
             </figure>
 
 

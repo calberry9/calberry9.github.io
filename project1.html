@@ -57,6 +57,8 @@
                 <img src="Images/mic setup.png" alt="Array Setup" class="center">
                 <figcaption class="center">Figure 2: Microphone Array Setup</figcaption>
             </figure>
+
+            <p>First, lets define some terminology. The broadside angle refers to the angle that is perpendicular to the linear array geometry, or the line that the sensors live on. Angle estimates will be relative to this angle.</p>
             
             <p>The two microphone array as shown above consists of two sensors, \(\tau\) and <strong>Mic 2</strong>, separated by a distance \(d\). Sound waves travel at a constant speed of 343m/s in dry air, assuming no dispersion. If we imagine a sound wave emitted from some source impinging on our microphone array from the left, as shown, then that wave will first be recorded by <strong>Mic 1</strong> and then by <strong>Mic 2</strong> some time later. The time it takes for the sound to travel between <strong>Mic 1</strong> and <strong>Mic 2</strong> can be related by the separation distance \(d\), speed of sound \(v\), and angle of arrival relative to broadside \(\beta\) by the equation:</p>
 
@@ -79,7 +81,7 @@
         <div class="container">
             <h2>Hardware</h2>
 
-            <p>Tufts Senior Capstone Projects are constrained to 2 semesters, with the first largely taken up by forming teams, finding problems, and making proposals. This left really only 1 semester to work on implementations of solutions. Due to this time constraint, our team elected to use off the shelf hardware rather than design our own microphone array from scratch. There are many off the shelf microphone arrays available from a variety of companies that interface with a variety of hardware, but we landed on a product from Seeed Technology; the ReSpeaker 6 Mic Circular Array. <a href="https://www.seeedstudio.com/ReSpeaker-6-Mic-Circular-Array-Kit-for-Raspberry-Pi.html?queryID=ff3c56f154ca538f605870f8ed555af7&objectID=131&indexName=bazaar_retailer_products">Link to product page.</a></p>
+            <p>Tufts Senior Capstone Projects are constrained to two semesters, with the first largely taken up by forming teams, finding problems, and making proposals. This left really only one semester to work on implementations of solutions. Due to this time constraint, our team elected to use off the shelf hardware rather than design our own microphone array from scratch. There are many off the shelf microphone arrays available from a variety of companies that interface with a variety of hardware, but we landed on a product from Seeed Technology; the ReSpeaker 6 Mic Circular Array. <a href="https://www.seeedstudio.com/ReSpeaker-6-Mic-Circular-Array-Kit-for-Raspberry-Pi.html?queryID=ff3c56f154ca538f605870f8ed555af7&objectID=131&indexName=bazaar_retailer_products">Link to product page.</a></p>
 
             <figure>
                 <img src="Images/respeaker hardware.png" alt="ReSpeaker" class="center">
@@ -100,14 +102,14 @@
                 <li>Max Sample Rate: 48kHz</li>
             </ul>
 
-            <p>We chose this design from Seeed for a variety of reasons. First, it had the ability to integrate with a raspberry pi microprocessor. The ReSpeaker is a breakout board that communicates with the pi through the pi's onboard GPIO pins. All of the audio capture is handled by the dedicated audio breakout board and the data is then passed to the pi for processing. This device also had an array of 12 LEDs that could be lit to indicate estimated direction of arrival. Though a dedicated audio processor would have been better for this application, the raspberry pi was more than capable for our needs, and allowed us to better hit our timeline through relatively low learning curve. Raspberry pi's can run versions of Linux, so programming and package installations is fairly easy, and there is a lot of documentation to work off of. For coding the device, any firmware or drivers were written in C, with the signal processing code being written in Python.</p>
+            <p>We chose this design from Seeed for a variety of reasons. First, it had the ability to integrate with a Raspberry Pi microprocessor. The ReSpeaker is a breakout board that communicates with the pi through the pi's onboard GPIO pins. All of the audio capture is handled by the dedicated audio breakout board and the data is then passed to the pi for processing. This device also had an array of 12 LEDs that could be lit to indicate estimated direction of arrival. Though a dedicated audio processor would have been better for this application, the Raspberry Pi was more than capable for our needs, and allowed us to better hit our timeline through relatively low learning curve. Raspberry Pi's can run versions of Linux, so programming and package installations is fairly easy, and there is a lot of documentation to work off of. For coding the device, any firmware or drivers were written in C, with the signal processing code being written in Python.</p>
 
             <figure>
                 <img src="Images/hw block diagram.png" alt="Hardware" class="center">
                 <figcaption class="center">Figure 5: ReSpeaker Hardware Block Diagram</figcaption>
             </figure>
 
-            <p>Another important area is the analog front end and analog to digital conversion section. The range of audio frequencies that humans can hear is about 20Hz to 20kHz. This frequency range drives the required sampling rate of our device. Audio exists as an analog signal in the air. In order to be processed by a computer using Digital Signal Processing, DSP, it must first be digitized. The process of converting an analog signal to a digital signal involves sampling the analog signal at discrete intervals, known as the sampling period. The sampling rate is how many samples are taken each second. According to Nyquist's Sampling Theorem, any periodic signal must be sampled at greater than or equal to twice the maximum frequency component of that signal. This is to prevent aliasing, in which frequencies higher than half the sampling rate will wrap around onto lower frequencies causing distortion. The Nyquist sampling rate for an audio signal is roughly 40kHz. Our hardware supports up to a 48kHz sampling rate, making it a good choice for audio applications, at least in a sampling sense. Unfortunately, we ran into a firmware problems getting the board to sample at 48kHz and ended up using a 16kHz sampling rate instead. The AC108 ADCs support a variety of sampling frequencies and have included anti-aliasing filters built into the front end that prevent aliasing of frequencies higher than Nyquist, so this ended up not being much of a problem. Additionally, speech and music signals end up being below 1kHz anyway, so audio quality is sufficiently preserved.</p>
+            <p>Another important area is the analog front end and analog to digital conversion section. The range of audio frequencies that humans can hear is about 20Hz to 20kHz. This frequency range drives the required sampling rate of our device. Audio exists as an analog signal in the air. In order to be processed by a computer using Digital Signal Processing, DSP, it must first be digitized. The process of converting an analog signal to a digital signal involves sampling the analog signal at discrete intervals, known as the sampling period. The sampling rate is how many samples are taken each second. According to Nyquist's Sampling Theorem, any periodic signal must be sampled at greater than or equal to twice the maximum frequency component of that signal. This is to prevent aliasing, in which frequencies higher than half the sampling rate will be interpreted as lower frequencies and wrap around on top of lower frequencies, causing distortion. The Nyquist sampling rate for an audio signal is roughly 40kHz. Our hardware supports up to a 48kHz sampling rate, making it a good choice for audio applications, at least in a sampling sense. Unfortunately, we ran into a firmware problems getting the board to sample at 48kHz and ended up using a 16kHz sampling rate instead. The AC108 ADCs support a variety of sampling frequencies and have included anti-aliasing filters built into the front end that prevent aliasing of frequencies higher than Nyquist, so this ended up not being much of a problem. Additionally, speech and music signals end up being largely below 1kHz anyway, so most of the spectral content is sufficiently captured.</p>
 
             <figure>
                 <img src="Images/ac108.png" alt="AC108" class="center">
@@ -117,7 +119,7 @@
         </div>
     </section>
 
-    <section id="Hardware" class="section">
+    <section id="Algorithm" class="section">
         <div class="container">
             <h2>Time Delay Estimation: GCC-PHAT</h2>
 
@@ -133,7 +135,7 @@
             \[R_{x_1,x_2}(\tau) = \mathbb{E}[x_1(t)x_2(t-\tau)]\]
             \[\hat{\tau_0} = arg max(R_{x_1,x_2}(\tau))\]
 
-            <p>In the above equations, \(R_{x_1,x_2}(\tau)\) is the cross-correlation as a function of an applied time shift \(\tau\), \(\mathbb{E}\) is the mathematical expectation operator, and \(\hat{\tau_0}\) is the estimate of the time delay \(\tau_0\). The estimate \(\hat{\tau_0}\) is the time delay that maximizies our cross-correlation function.</p>
+            <p>In the above equations, \(R_{x_1,x_2}(\tau)\) is the cross-correlation as a function of an applied time shift \(\tau\), \(\mathbb{E}\) is the mathematical expectation operator, and \(\hat{\tau_0}\) is the estimate of the time delay \(\tau_0\). The estimate \(\hat{\tau_0}\) is the time delay that maximizes our cross-correlation function.</p>
 
             <p>What we have talked about so far is "regular" cross-correlation. The "generalized" approach uses weighting functions to sharpen the peak of our cross-correlation function in order to get a better, more accurate time delay estimate. The Phase Transform (PHAT) is one of those weighting methods. The PHAT transform involves weighting the cross power spectrum, or the frequency domain realization of the cross-correlation, by the magnitude of the spectrum. The phase transform is applied in the frequency domain.</p>
 
@@ -158,13 +160,63 @@
             \[\hat{\tau_0} = arg max(\delta(\tau-\tau_0)) = \tau_0\]
 
             <figure>
-                <img src="Images/delayed audio.png" alt="Hardware" class="center">
+                <img src="Images/delayed audio.png" alt="Audio" class="center">
                 <figcaption class="center">Figure 7: Recorded and Delayed Audio</figcaption>
             </figure>
 
+            <p>Now, let's apply this to an example audio recording. The audio recording used is of human speech, recorded with a sample rate of 22.05kHz. The top plot shows the original recording amplitude vs. time. The bottom plot shows the same recording zero padded with 2205 samples to mimic a 10ms time delay between channels. In reality the time delay would not manifest as zero padding rather some noise would be present, but this example yields a nice result. Let's call the original recording the reference, and the delayed recording the test signal. If we pass these two signals to the GCC-PHAT algorithm defined above, we would get the resulting cross-correlation plot vs time.</p>
 
+            <figure>
+                <img src="Images/gcc_output.png" alt="GCC" class="center">
+                <figcaption class="center">Figure 8: Generalized Cross Correlation Output</figcaption>
+            </figure>
 
+            <p>The resulting peak of the cross-correlation function is found at 2205 samples, or 10ms if we convert sample number to time using the sample rate. The negative sign refers to the fact that the test signal needed to be shifted backward 2205 samples to line up with the reference. If we instead applied the delay to the reference, we'd get a positive sample delay.</p>
 
+            <p>Now, to convert from time delays to angle of arrival, we only need to remember our earlier equation relating the time delay to angle of arrival through our array geometry. The actual implementation in hardware looks largely the same as the math above, however, we take advantage of multiple microphone pairs to remove the angle ambiguity.</p>
+
+        </div>
+    </section>
+
+    <section id="Implementation" class="section">
+        <div class="container">
+            <h2>Implementation</h2>
+
+            <p>The implementation of the GCC-PHAT algorithm mostly follows the math outlined above. However, since we have more than two microphones, the angle estimation looks a little different. Here is a visual of our microphone setup.</p>
+
+            <figure>
+                <img src="Images/respeaker_mics.jpg" alt="mics" class="center">
+                <figcaption class="center">Figure 9: Respeaker Mic Pairs</figcaption>
+            </figure>
+
+            <p>To remove the angle ambiguity, we will be using the 6 available microphones on our board rather than just 2. For this project, we used the opposing microphone pairs. The pairs we used were 1-4, 2-5, and 3-6. First, we compute the time delays associated with each microphone pair using GCC-PHAT, using the first microphone listed in each pair as the reference. Each microphone pair forms a linear array along a different azimuth axis, thus we have three different time delays to work from. We estimate the angle of arrival from the array pair with the smallest absolute time delay (delays can be positive or negative relative to reference), using our sin formula from earlier, this time solving for \(\beta\).</p>
+
+            \[\beta = \arcsin(\frac{tau \cdot v}{d})\]
+
+            <p>We chose to estimate the angle from the pair with the smallest absolute time delay to ensure that we can use the remaining pairs to remove the angle ambiguity. Remember that for a linear array, the angle estimate limited to a range of [-90, 90] degrees. This corresponds to sources in front of the array, but sources can also be present behind the array. To figure out if sources are in front of or behind a given microphone pair, we can look at the time delays estimated by the remaining array pairings. Looking at our array setup, after we chose one microphone pair to do our angle estimation, the other two pairs each have one microphone in front of the the estimation pair, and one behind it.</p>
+
+            <figure>
+                <img src="Images/respeaker_mics_ambiguity.jpg" alt="ambiguity" class="center">
+                <figcaption class="center">Figure 10: Front-Back Pairs</figcaption>
+            </figure>
+
+            <p>For example, if we estimate the angle using microphones 1 and 4, the adjacent microphone 2-5 pair would place microphone 2 in front of array 1-4, and microphone 5 behind it. Then, if we have an estimate for an angle of arrival using microphone pair 1-4, we can check if the time delay estimated from pair 2-5 is positive, corresponding to a source behind the array, or negative, corresponding to a source in front of the array (this may seem backwards but that how our GCC implementation is set up). For this method to work, the time delay of the second microphone pair can't be 0, we need a positive OR a negative time delay to figure out if the source is in front of behind. The case of a 0 sample time delay between microphones occurs when the source arrives perfectly at broadside to one of the linear arrays. However, only one of the three array pairings will estimate a 0 sample delay at any one time, as each of the array pairings are set up on different azimuth angle axis. This if we always do our angle estimation from the pair with a 0 sample time delay between microphone elements, the other two pairs will always have a non-zero time delay, allowing us to remove the angle ambiguity. Choosing the pair with the smallest absolute time delay will always captures the 0 time delay case, and keeps things consistent for the cases when the source is not at broadside to any of the angle pairs.</p>
+
+            <p>The final step in this process is to translate all the angle estimates back to the device/user's perspective. For this project, we chose our 0 degree reference point to be directly in front of the device, between microphones 1 and 2. Thus, we simply had to apply a rotation to the angle estimate given by each of our microphone pairs by adding or subtracting the angle that the chosen pair is defined along from the reported angle estimate, modulo 360. The angle estimates are then printed to terminal, and each of the 12 LEDs is coded to light up for a given range of angle estimates to give some visual indication of the sources location.</p>
+
+            <p>And that's it! There are some more nuance details about how audio is captured and how the code is organized, but for the most part this explains the project and how things worked. We also increased the number of IFFT points in our implementation of the GCC algorithm to increase the time delay and thus angle estimate resolution according to []. All of the papers referenced are listed in the references section below, and any continuations of the project that I make after graduation will be listed in other project pages. Thanks so much for reading along!</p>
+        </div>
+    </section>
+
+    <section id="References" class="section">
+        <div class="container">
+            <h2>References</h2>
+            <ul>
+                <li>[1] Charles H. Knapp, G. Clifford Carter. 1976. The Generalized Correlation Method for Estimation of Time Delay. <em>IEEE Transactions on Acoustics, Speech, and Signal Processing</em>, Vol. ASSP-24, No. 4</li>
+                <li>[2] Fadhil Zuandi, Mareska Pratiwi Maharani, Wansu Lim. 2018. Performance Comparison Between Steered Response Power and Generalized Cross Correlation in Microphone Arrays for Sound Source Localization. <em>ARPN Journal of Engineering and Applied Sciences</em>, Vol. 13, No. 9</li>
+                <li>[3] Francois Grondin, James Glass. 2018. A Study of the Complexity and Accuracy of Direction of Arrival Estimation Methods Based on GCC-PHAT for a Pair of Close Microphones. <em>arXiv:1811.11787</em></li>
+                <!-- Add more references as needed -->
+            </ul>
         </div>
     </section>
 
